@@ -21,18 +21,26 @@ st.divider()
 
 # ── 共用：偵測中文字型 ──
 def get_font(size):
+    # 1. 優先從本機捆綁字型（msjh.ttc 放在 repo 裡，Streamlit Cloud 可用）
+    bundled = os.path.join(os.path.dirname(__file__), "msjh.ttc")
+    if os.path.exists(bundled):
+        try:
+            return ImageFont.truetype(bundled, size)
+        except Exception:
+            pass
+
+    # 2. 各系統路徑
     sys_plat = platform.system()
-    # Linux 上常見的中文字型路徑（Streamlit Cloud 適用）
     linux_cjk_fonts = [
         "/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc",
         "/usr/share/fonts/truetype/wqy/wqy-microhei.ttc",
         "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
         "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",
         "/usr/share/fonts/truetype/droid/DroidSansFallbackFull.ttf",
-        "/usr/share/fonts/truetype/ubuntu/Ubuntu-C.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
     ]
     windows_fonts = [
-        "C:\\Windows\\Fonts\\msjh.ttc",  # 微軟正黑體
+        "C:\\Windows\\Fonts\\msjh.ttc",
         "C:\\Windows\\Fonts\\simsun.ttc",
         "C:\\Windows\\Fonts\\mingliu.ttc",
     ]
@@ -57,7 +65,7 @@ def get_font(size):
             except Exception:
                 pass
 
-    # 最後 fallback (防止在新版 Pillow 預設字型呼叫 textbbox 時報錯)
+    # 3. 最後 fallback
     try:
         return ImageFont.load_default()
     except Exception:
