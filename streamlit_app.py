@@ -4,8 +4,10 @@ PDF 浮水印工具 - Streamlit App
 """
 
 import io
+import os
+import platform
 import streamlit as st
-import fitz
+import fitz  # PyMuPDF
 from PIL import Image, ImageDraw, ImageFont
 
 st.set_page_config(
@@ -16,6 +18,27 @@ st.set_page_config(
 
 st.title("📄 PDF 浮水印工具")
 st.divider()
+
+# 自動偵測系統合適的中文字型，防止中文預覽變亂碼
+def get_system_font(font_size):
+    sys_plat = platform.system()
+    font_paths = {
+        "Windows": "C:\\Windows\\Fonts\\msjh.ttc",
+        "Darwin": "/System/Library/Fonts/Supplemental/Arial Unicode.ttf",
+        "Linux": "/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc"
+    }
+
+    font_path = font_paths.get(sys_plat, "")
+    if font_path and os.path.exists(font_path):
+        try:
+            return ImageFont.truetype(font_path, font_size)
+        except Exception:
+            pass
+
+    try:
+        return ImageFont.load_default()
+    except Exception:
+        return None
 
 # Sidebar controls
 with st.sidebar:
@@ -80,13 +103,8 @@ if st.session_state.pdf_bytes and wm_text.strip():
         pix = page.get_pixmap(matrix=mat)
         preview_img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
 
-        # Font
-        try:
-            img_font = ImageFont.truetype(
-                "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", font_size
-            )
-        except Exception:
-            img_font = ImageFont.load_default()
+        # 載入適合的中文字型
+        img_font = get_system_font(font_size)
 
         # Color
         r = int(wm_color[1:3], 16)
@@ -101,11 +119,18 @@ if st.session_state.pdf_bytes and wm_text.strip():
 
         lines = wm_text.strip().split("\n")
         line_h = font_size + 8
-        start_y = cy - (len(lines) * line_h) // 2
+        total_h = len(lines) * line_h
+        start_y = cy - total_h // 2
 
         for i, line in enumerate(lines):
+            try:
+                bbox = wm_draw.textbbox((0, 0), line, font=img_font)
+                text_w = bbox[2] - bbox[0]
+            except AttributeError:
+                text_w = font_size * len(line) // 2
+
             wm_draw.text(
-                (cx - preview_img.width // 4, start_y + i * line_h),
+                (cx - text_w // 2, start_y + i * line_h),
                 line,
                 font=img_font,
                 fill=(r, g, b_val, int(255 * alpha))
@@ -113,7 +138,7 @@ if st.session_state.pdf_bytes and wm_text.strip():
 
         if rotation != 0:
             wm_img = wm_img.rotate(
-                -rotation, center=(cx, cy), expand=1, fillcolor=(0, 0, 0, 0)
+                -rotation, center=(cx, cy), expand=0, fillcolor=(0, 0, 0, 0)
             )
 
         preview_img = preview_img.convert("RGBA")
