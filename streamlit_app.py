@@ -19,12 +19,17 @@ st.set_page_config(
 st.markdown("""
 <style>
   .main-header {
-    font-size: 1.6rem;
+    font-size: 1.5rem;
     font-weight: 700;
     color: #4a6fa5;
     letter-spacing: 0.02em;
+    padding: 0.5rem 0 0.3rem;
+    display: block;
+    overflow: visible;
   }
-  .block-container { padding-top: 1.5rem !important; padding-bottom: 1rem !important; }
+  .stMarkdownContainer { overflow: visible !important; }
+  .block-container { padding-top: 1.2rem !important; padding-bottom: 1rem !important; }
+  header { background: #f5f3ef !important; }
 </style>
 """, unsafe_allow_html=True)
 
