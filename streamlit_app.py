@@ -18,18 +18,30 @@ st.set_page_config(
 # Custom CSS
 st.markdown("""
 <style>
+  header[data-testid="stHeader"] {
+    background: #f5f3ef !important;
+    height: 56px !important;
+    border-bottom: 1px solid #e2ddd6 !important;
+  }
+  header[data-testid="stHeader"] > div {
+    display: none !important;
+  }
   .main-header {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
     font-weight: 700;
     color: #4a6fa5;
     letter-spacing: 0.02em;
-    padding: 0.5rem 0 0.3rem;
+    margin-top: 12px !important;
     display: block;
-    overflow: visible;
+    overflow: visible !important;
   }
-  .stMarkdownContainer { overflow: visible !important; }
-  .block-container { padding-top: 1.2rem !important; padding-bottom: 1rem !important; }
-  header { background: #f5f3ef !important; }
+  .stMarkdown { overflow: visible !important; }
+  .stMarkdown > div { overflow: visible !important; }
+  .element-container { overflow: visible !important; }
+  .block-container {
+    padding-top: 0.5rem !important;
+    padding-bottom: 1rem !important;
+  }
 </style>
 """, unsafe_allow_html=True)
 
