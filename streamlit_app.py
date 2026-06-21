@@ -28,12 +28,11 @@ def get_font(size):
         "/usr/share/fonts/truetype/wqy/wqy-microhei.ttc",
         "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
         "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
         "/usr/share/fonts/truetype/droid/DroidSansFallbackFull.ttf",
         "/usr/share/fonts/truetype/ubuntu/Ubuntu-C.ttf",
     ]
     windows_fonts = [
-        "C:\\Windows\\Fonts\\msjh.ttc",
+        "C:\\Windows\\Fonts\\msjh.ttc",  # 微軟正黑體
         "C:\\Windows\\Fonts\\simsun.ttc",
         "C:\\Windows\\Fonts\\mingliu.ttc",
     ]
@@ -58,7 +57,7 @@ def get_font(size):
             except Exception:
                 pass
 
-    # 最後 fallback
+    # 最後 fallback (防止在新版 Pillow 預設字型呼叫 textbbox 時報錯)
     try:
         return ImageFont.load_default()
     except Exception:
@@ -152,7 +151,7 @@ if mode == "PDF 浮水印":
                 try:
                     bbox = wm_draw.textbbox((0, 0), line, font=img_font)
                     text_w = bbox[2] - bbox[0]
-                except AttributeError:
+                except Exception:
                     text_w = font_size * len(line) // 2
                 wm_draw.text(
                     (cx - text_w // 2, start_y + i * line_h),
@@ -206,10 +205,12 @@ if mode == "PDF 浮水印":
                     for page in doc:
                         w = page.rect.width
                         h = page.rect.height
+                        # ✨ 核心修正點：加入 fontname="china-t" 確保生成的 PDF 內文支援繁體中文不漏字
                         page.insert_text(
                             (w / 2, h / 2),
                             wm_text,
                             fontsize=font_size,
+                            fontname="china-t",
                             color=(r/255, g/255, b_val/255),
                             opacity=opacity / 100,
                             rotation=rotation,
@@ -262,10 +263,10 @@ else:
             if img.mode != "RGB":
                 img = img.convert("RGB")
 
-            w, h = img.size
-            scale = 800 / max(w, h)
+            w, h_img = img.size
+            scale = 800 / max(w, h_img)
             if scale < 1:
-                img_preview = img.resize((int(w * scale), int(h * scale)), Image.LANCZOS)
+                img_preview = img.resize((int(w * scale), int(h_img * scale)), Image.LANCZOS)
             else:
                 img_preview = img.copy()
 
@@ -290,7 +291,7 @@ else:
                 try:
                     bbox = wm_draw.textbbox((0, 0), line, font=img_font)
                     text_w = bbox[2] - bbox[0]
-                except AttributeError:
+                except Exception:
                     text_w = font_size * len(line) // 2
                 wm_draw.text(
                     (cx - text_w // 2, start_y + i * line_h),
@@ -326,7 +327,6 @@ else:
     if st.session_state.img_bytes and wm_text.strip():
         st.divider()
 
-        # 決定輸出格式（根據副檔名）
         ext = st.session_state.img_name.lower().split(".")[-1]
         out_format = "PNG" if ext in ("png", "gif") else "JPEG"
         out_ext = "png" if out_format == "PNG" else "jpg"
@@ -339,7 +339,7 @@ else:
                     if img.mode != "RGB":
                         img = img.convert("RGB")
 
-                    w, h = img.size
+                    w, h_img = img.size
                     img_font = get_font(font_size)
 
                     r = int(wm_color[1:3], 16)
@@ -349,7 +349,7 @@ else:
 
                     wm_layer = Image.new("RGBA", img.size, (0, 0, 0, 0))
                     wm_draw = ImageDraw.Draw(wm_layer, "RGBA")
-                    cx, cy = w // 2, h // 2
+                    cx, cy = w // 2, h_img // 2
 
                     lines = wm_text.strip().split("\n")
                     line_h = font_size + 10
@@ -360,7 +360,7 @@ else:
                         try:
                             bbox = wm_draw.textbbox((0, 0), line, font=img_font)
                             text_w = bbox[2] - bbox[0]
-                        except AttributeError:
+                        except Exception:
                             text_w = font_size * len(line) // 2
                         wm_draw.text(
                             (cx - text_w // 2, start_y + i * line_h),
@@ -396,6 +396,3 @@ else:
 
                 except Exception as e:
                     st.error(f"處理失敗：{e}")
-
-st.divider()
-st.caption("預覽僅供參考，實際輸出效果以下載的檔案為準")
