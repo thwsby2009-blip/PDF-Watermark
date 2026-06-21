@@ -142,6 +142,7 @@ if mode == "PDF 浮水印":
 
             # 疊加到預覽
             preview = preview.convert("RGBA")
+            wm_pil = wm_pil.resize((preview.width, preview.height), Image.LANCZOS)
             preview = Image.alpha_composite(preview, wm_pil).convert("RGB")
 
             buf = io.BytesIO()
