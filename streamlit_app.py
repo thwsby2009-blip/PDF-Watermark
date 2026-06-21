@@ -19,7 +19,7 @@ st.set_page_config(
 st.title("📄 PDF 浮水印工具")
 st.divider()
 
-# 自動偵測系統合適的中文字型，防止中文預覽變亂碼
+# 自動偵測系統合適的中文字型
 def get_system_font(font_size):
     sys_plat = platform.system()
     font_paths = {
@@ -27,14 +27,12 @@ def get_system_font(font_size):
         "Darwin": "/System/Library/Fonts/Supplemental/Arial Unicode.ttf",
         "Linux": "/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc"
     }
-
     font_path = font_paths.get(sys_plat, "")
     if font_path and os.path.exists(font_path):
         try:
             return ImageFont.truetype(font_path, font_size)
         except Exception:
             pass
-
     try:
         return ImageFont.load_default()
     except Exception:
@@ -103,16 +101,13 @@ if st.session_state.pdf_bytes and wm_text.strip():
         pix = page.get_pixmap(matrix=mat)
         preview_img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
 
-        # 載入適合的中文字型
         img_font = get_system_font(font_size)
 
-        # Color
         r = int(wm_color[1:3], 16)
         g = int(wm_color[3:5], 16)
         b_val = int(wm_color[5:7], 16)
         alpha = opacity / 100
 
-        # Watermark layer
         wm_img = Image.new("RGBA", preview_img.size, (0, 0, 0, 0))
         wm_draw = ImageDraw.Draw(wm_img, "RGBA")
         cx, cy = preview_img.width // 2, preview_img.height // 2
