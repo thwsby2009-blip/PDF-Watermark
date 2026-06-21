@@ -22,17 +22,43 @@ st.divider()
 # ── 共用：偵測中文字型 ──
 def get_font(size):
     sys_plat = platform.system()
-    paths = {
-        "Windows": "C:\\Windows\\Fonts\\msjh.ttc",
-        "Darwin": "/System/Library/Fonts/PingFang.ttc",
-        "Linux": "/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc",
-    }
-    p = paths.get(sys_plat, "")
-    if p and os.path.exists(p):
-        try:
-            return ImageFont.truetype(p, size)
-        except Exception:
-            pass
+    # Linux 上常見的中文字型路徑（Streamlit Cloud 適用）
+    linux_cjk_fonts = [
+        "/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc",
+        "/usr/share/fonts/truetype/wqy/wqy-microhei.ttc",
+        "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+        "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/truetype/droid/DroidSansFallbackFull.ttf",
+        "/usr/share/fonts/truetype/ubuntu/Ubuntu-C.ttf",
+    ]
+    windows_fonts = [
+        "C:\\Windows\\Fonts\\msjh.ttc",
+        "C:\\Windows\\Fonts\\simsun.ttc",
+        "C:\\Windows\\Fonts\\mingliu.ttc",
+    ]
+    darwin_fonts = [
+        "/System/Library/Fonts/PingFang.ttc",
+        "/System/Library/Fonts/STHeiti Light.ttc",
+        "/Library/Fonts/Arial Unicode.ttf",
+    ]
+
+    candidates = []
+    if sys_plat == "Linux":
+        candidates = linux_cjk_fonts + windows_fonts + darwin_fonts
+    elif sys_plat == "Windows":
+        candidates = windows_fonts + linux_cjk_fonts
+    elif sys_plat == "Darwin":
+        candidates = darwin_fonts + linux_cjk_fonts
+
+    for p in candidates:
+        if os.path.exists(p):
+            try:
+                return ImageFont.truetype(p, size)
+            except Exception:
+                pass
+
+    # 最後 fallback
     try:
         return ImageFont.load_default()
     except Exception:
