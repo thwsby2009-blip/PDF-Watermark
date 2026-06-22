@@ -174,13 +174,14 @@ if mode == "PDF 浮水印":
                         # 用 PIL 做透明浮水印圖，再寫入 PDF
                         wm_pil = make_watermark_pil(wm_text, font_size, alpha_val, rotation, wm_color, w, h)
                         wm_buf = io.BytesIO()
-                        wm_pil.save(wm_buf, "PNG")
+                        wm_pil.save(wm_buf, format="PNG")
                         wm_buf.seek(0)
+                        wm_bytes = wm_buf.getvalue()
 
-                        # 置中放進 PDF（img 會墊在文字底下）
+                        # 置中放進 PDF
                         page.insert_image(
                             (w // 2 - wm_pil.width // 2, h // 2 - wm_pil.height // 2),
-                            filename=wm_buf,
+                            stream=wm_bytes,
                             keep_proportion=False,
                         )
 
