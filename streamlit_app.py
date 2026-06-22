@@ -219,7 +219,8 @@ else:
             wm_pil = make_watermark_pil(wm_text, font_size, alpha_val, rotation, wm_color, orig.width, orig.height)
 
             result = orig.convert("RGBA")
-            result = Image.alpha_composite(result, wm_pil).convert("RGB")
+            wm_pil_resized = wm_pil.resize((orig.width, orig.height), Image.LANCZOS)
+            result = Image.alpha_composite(result, wm_pil_resized).convert("RGB")
 
             buf = io.BytesIO()
             result.save(buf, "PNG")
