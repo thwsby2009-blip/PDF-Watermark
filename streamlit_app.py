@@ -178,11 +178,14 @@ if mode == "PDF 浮水印":
                         wm_buf.seek(0)
                         wm_bytes = wm_buf.getvalue()
 
-                        # 置中放進 PDF
+                        # 置中放進 PDF（insert_image 需要 fitz.Rect 或 4 元組）
+                        x0 = w // 2 - wm_pil.width // 2
+                        y0 = h // 2 - wm_pil.height // 2
+                        x1 = x0 + wm_pil.width
+                        y1 = y0 + wm_pil.height
                         page.insert_image(
-                            (w // 2 - wm_pil.width // 2, h // 2 - wm_pil.height // 2),
+                            fitz.Rect(x0, y0, x1, y1),
                             stream=wm_bytes,
-                            keep_proportion=False,
                         )
 
                     out_bytes = doc.tobytes()
